@@ -88,6 +88,10 @@ testing %>%
 
 
 ## Build tree
+
+### A perfect tree
+For fun, let's first build a decision tree to predict whether or not "Legendary" is predicted from is_legendary.  It ought to be perfect since one they are the same.  This is just an exercise in the mechanics of using the software.
+
 ```{r}
 library(rpart)
 fit <- training %>%
@@ -96,7 +100,26 @@ fit <- training %>%
         data = .)
 ```
 
+We fit the model from training data and store the result in a "fit" object.  Then we uses "predict" to predict the results of testing data based on the fit.  We save the result in legendary_prediction and do two things:
+
+1. join the prediction to the original data so we can see the prediction for each record
+2. create a contingency table showing the predicted and actual values rates.  (Is this called a confusion table?)
+
 ```{r}
-predict(fit, testing)
+legendary_prediction <- predict(fit, newdata = testing, type="class")
+testing_predicted <- cbind(testing, legendary_prediction)
+table(legendary_prediction, testing$legendary)
 ```
+Looks pretty good!  We get perfect prediction, as we expected we would!
+
+### ctree
+
+```{r}
+library(partykit)
+training$legendary <- as.factor(training$legendary)
+fit2 <- ctree(legendary ~ is_legendary, data = training)
+legendary_prediction2 <- predict(fit2, newdata = testing)
+table(legendary_prediction2, testing$legendary)
+```
+
 
