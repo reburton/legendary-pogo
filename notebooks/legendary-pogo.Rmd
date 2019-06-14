@@ -39,7 +39,7 @@ mons %>%
   tally()
 ```
 
-## Pokemon by hight and weight
+## Pokemon by height and weight
 
 ```{r}
 
@@ -51,5 +51,52 @@ mons %>%
 mons %>%
   ggplot(aes(height_m, weight_kg)) +
   geom_point(aes(color = legendary))
+```
+
+## Pokemon by type
+```{r}
+mons %>%
+  mutate(type1 = ifelse(is.na(type1), "none", type1),
+         type2 = ifelse(is.na(type2), "none", type2)) %>%
+  filter(type2 != "none") %>%
+  group_by(type1, type2) %>%
+  tally() %>%
+  ggplot(aes(type1, type2)) +
+  geom_tile(aes(fill = n))
+```
+
+
+# Classification Tree
+## Split data
+```{r}
+library(caret)
+set.seed(1501)
+inTrain <- createDataPartition(y = mons$legendary,
+                               p = 0.6,
+                               list = FALSE)
+training <- mons[inTrain,]
+testing <- mons[-inTrain,]
+
+training %>% 
+  group_by(legendary) %>%
+  tally()
+
+testing %>% 
+  group_by(legendary) %>%
+  tally()
+```
+
+
+## Build tree
+```{r}
+library(rpart)
+fit <- training %>%
+  rpart(legendary ~ is_legendary,
+        method = "class",
+        data = .)
+```
+
+```{r}
+predict(fit, testing)
 ```
 
