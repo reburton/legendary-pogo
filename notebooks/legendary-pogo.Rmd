@@ -3,16 +3,53 @@ title: "Legen-wait-for-it-dary!"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+# Load Mons
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+Start by loading the CSV and doing some basic testing of the data.
 
+## Data load
 ```{r}
+library(tidyverse)
 mons <- readr::read_csv('../data/orig/pokemon.csv')
+mons %>% tally()
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+```{r}
+mons <- mons %>%
+  mutate(legendary = ifelse(is_legendary == 1, "legendary", "not legendary"))
+```
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+Test for duplicate pokemons by looking for the same English name appearing more than once
+```{r}
+mons %>%
+  select(name) %>%
+  group_by(name) %>%
+  tally() %>%
+  filter(n > 1)
+```
+Okay, there are no duplicate entries in the data set.  I was worried there would be if types changed between generations for the same mon.
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+# Legendary EDA
+
+## How many Pokemon are Legendary
+
+```{r}
+mons %>%
+  group_by(legendary) %>%
+  tally()
+```
+
+## Pokemon by hight and weight
+
+```{r}
+
+mons %>%
+  filter(!is.na(height_m) & !is.na(weight_kg)) %>%
+  group_by(legendary) %>%
+  summarise(mean_height = mean(height_m), mean_weight = mean(weight_kg))
+
+mons %>%
+  ggplot(aes(height_m, weight_kg)) +
+  geom_point(aes(color = legendary))
+```
+
